@@ -6,7 +6,7 @@ import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV, Vector => BV}
 import breeze.linalg._
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import org.apache.spark.rdd.RDDCheckpointData
 import spire.random.Dist
 import java.io._
@@ -83,7 +83,7 @@ object SparkASAGASampleThread{
     var w = BDV.zeros[Double](d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[(ListBuffer[(Long,Double)],DenseVector[Double])]
+    val bucket =new ASYNCcontext[(ListBuffer[(Long,Double)],DenseVector[Double])]
 
     var k = 0
     var ts = 0
@@ -148,16 +148,16 @@ object SparkASAGASampleThread{
 
                 info match {
                   case Some(value) =>{
-                    val data = value.getData()
+                    val data = value.gettaskResult()
                     val lis = data._1
 
                     //var gradient = data._2
                     //val alphai = data._3
                     var gradient_alphai = data._2
 
-                    val parIndex = value.getPartitionIndex()
-                    val parRecs = value.getRecordsNum()
-                    val ts = value.getTimeStamp()
+                    val parIndex = value.getWorkerID()
+                    val parRecs = value.getbatchSize()
+                    val ts = value.getStaleness()
 
                     //NEW:
                     // record time when partition is freed
@@ -328,7 +328,7 @@ object SparkASAGASampleThread{
         //increase the time stamp by 1
         bucket.setCurrentTime(globalTS)
         globalTS+=1
-        IndexGrad.aggregate_async(new ListBuffer[(Long, Double)](), BDV.zeros[Double](d))((x, y) => {
+        IndexGrad.ASYNCaggregate(new ListBuffer[(Long, Double)](), BDV.zeros[Double](d))((x, y) => {
           x._1 += y._1;
           (x._1, x._2 + y._2)
         }, (x, y) => (x._1 ++ y._1, x._2 + y._2), bucket)

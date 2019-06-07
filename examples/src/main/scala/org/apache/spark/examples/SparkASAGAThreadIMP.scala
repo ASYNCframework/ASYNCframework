@@ -8,7 +8,7 @@ import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV, Vector => BV}
 import breeze.linalg._
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import org.apache.spark.rdd.RDDCheckpointData
 import spire.random.Dist
 import java.io._
@@ -91,7 +91,7 @@ object SparkASGDThreadIMP{
     val w = Vectors.zeros(d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[Vector]
+    val bucket =new ASYNCcontext[Vector]
     bucket.setRecordStat(true)
     var k = 0
     var obj = 0.0
@@ -182,7 +182,7 @@ object SparkASGDThreadIMP{
             val comOp: (Vector,Vector)=>Vector = (x,y )=>{
               axpyOp(1.0,x,y)
             }
-            IndexGrad.reduce_async(comOp,bucket)
+            IndexGrad.ASYNCreduce(comOp,bucket)
 
             //println("Submitted2")
             //NEW:
@@ -216,11 +216,11 @@ object SparkASGDThreadIMP{
 
               info match {
                 case Some(value) =>{
-                  val data = value.getData()
-                  val ts = value.getTimeStamp()
+                  val data = value.gettaskResult()
+                  val ts = value.getStaleness()
                   if(k-ts<=taw ){
                     val gradient = data
-                    val parIndex = value.getPartitionIndex()
+                    val parIndex = value.getWorkerID()
                     FinishTimeTable.put(parIndex,System.currentTimeMillis())
 
                     if(k<1000){
@@ -247,7 +247,7 @@ object SparkASGDThreadIMP{
 
                   }
                   else{
-                    val parIndex = value.getPartitionIndex()
+                    val parIndex = value.getWorkerID()
                     pendingQueue += parIndex
                     accnum+=1
                     //println("GEEZ "+" "+globalTS+" "+ts+ " "+k)

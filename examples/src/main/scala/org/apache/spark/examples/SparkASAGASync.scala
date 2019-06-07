@@ -6,7 +6,7 @@ import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV, Vector => BV}
 import breeze.linalg._
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import org.apache.spark.rdd.RDDCheckpointData
 import spire.random.Dist
 import java.io._
@@ -93,7 +93,7 @@ object SparkASAGASync{
     val w = Vectors.zeros(d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[(ListBuffer[(Long,Double)],Vector)]
+    val bucket =new ASYNCcontext[(ListBuffer[(Long,Double)],Vector)]
     bucket.setRecordStat(false)
 
     var k = 0
@@ -242,7 +242,7 @@ object SparkASAGASync{
             //increase the time stamp by 1
             bucket.setCurrentTime(k)
 
-            IndexGrad.aggregate_async(new ListBuffer[(Long, Double)](), Vectors.zeros(d))((x, y) => {
+            IndexGrad.ASYNCaggregate(new ListBuffer[(Long, Double)](), Vectors.zeros(d))((x, y) => {
               x._1 += y._1;
               (x._1, comOp(x._2,y._2))
             }, (x, y) => (x._1 ++ y._1,comOp(x._2,y._2)), bucket)
@@ -269,7 +269,7 @@ object SparkASAGASync{
             info match {
               case Some(value) => {
                 bsize += 1
-                val parIndex = value.getPartitionIndex()
+                val parIndex = value.getWorkerID()
                 FinishTimeTable.put(parIndex, System.currentTimeMillis()-(extraTimeEn-extraTimeSt))
 
                 if (k < 100) {
@@ -282,7 +282,7 @@ object SparkASAGASync{
                   culTime += (xs-SubmitJobTime.get(parIndex).getOrElse(xs))
                 }
                 extraTimeSt = System.currentTimeMillis()
-                val data = value.getData()
+                val data = value.gettaskResult()
                 accGrad += toBreeze(data._2)
                 val lis = data._1
                 //val gradient_alphai = data._2

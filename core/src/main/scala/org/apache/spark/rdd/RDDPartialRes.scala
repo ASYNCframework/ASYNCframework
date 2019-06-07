@@ -6,32 +6,32 @@ import scala.reflect.ClassTag
 /*
  * This class holds the info for a reduced result on partitions
  * data: the reduced result
- * ts: time stamp
+ * ts: staleness
  * recs: number of records that have been processed
- * index: index of the partition
+ * WorkerID: id of the partition
  */
 class RDDPartialRes[T: ClassTag] (val data:T,
                             val ts: Int,
                             val recs: Int,
-                            val index: Int) extends  Serializable {
-  private val partialResult = data
-  private val timeStamp = ts
-  private val recordNum = recs
-  private val partitionIndex = index
+                            val id: Int) extends  Serializable {
+  private val TaskResult = data
+  private val staleness = ts
+  private val batchSize = recs
+  private val WorkerID = id
 
-  def getPartitionIndex(): Int = {
-    this.partitionIndex
+  def getWorkerID(): Int = {
+    this.WorkerID
   }
 
-  def getRecordsNum(): Int = {
-    this.recordNum
+  def getbatchSize(): Int = {
+    this.batchSize
   }
 
-  def getTimeStamp() : Int = {
-    this.timeStamp
+  def getStaleness() : Int = {
+    this.staleness
   }
 
-  def getData():T = {
-    this.partialResult
+  def gettaskResult():T = {
+    this.TaskResult
   }
 }

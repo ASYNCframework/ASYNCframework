@@ -24,7 +24,7 @@ import org.apache.spark.mllib.linalg.Vectors
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV, Vector => BV}
 import breeze.linalg._
 
-import org.apache.spark.rdd.ResultsRdd
+import org.apache.spark.rdd.ASYNCcontext
 
 object SparkGradientSync {
 
@@ -54,7 +54,7 @@ object SparkGradientSync {
 
     var gradient = BDV.zeros[Double](d)
 
-    val bucket = new ResultsRdd[DenseVector[Double]]
+    val bucket = new ASYNCcontext[DenseVector[Double]]
     //points.setResultParam(f)
     //points.resultRddObj = f
     val startTime = System.currentTimeMillis()

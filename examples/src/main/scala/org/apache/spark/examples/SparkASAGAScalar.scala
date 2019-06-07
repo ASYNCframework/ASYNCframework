@@ -13,7 +13,7 @@ import org.apache.spark.mllib.linalg.distributed.{BlockMatrix, CoordinateMatrix,
 import breeze.numerics._
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.linalg.distributed.RowMatrix
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import org.apache.spark.broadcast._
 import org.apache.spark.ml.linalg
 import org.apache.spark.streaming.StreamingContext
@@ -50,7 +50,7 @@ object SparkASAGAScalar{
     var w = BDV.zeros[Double](d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[(ListBuffer[(Long,Double)],DenseVector[Double],DenseVector[Double])]
+    val bucket =new ASYNCcontext[(ListBuffer[(Long,Double)],DenseVector[Double],DenseVector[Double])]
 
     val startTime = System.currentTimeMillis()
     var k = 0
@@ -99,7 +99,7 @@ object SparkASAGAScalar{
         ((x._2,e2._2),e2._1,oldGrad)
       }
 
-      IndexGrad.aggregate_async(new ListBuffer[(Long,Double)](),BDV.zeros[Double](d),BDV.zeros[Double](d))((x,y)=>{x._1+=y._1;(x._1,x._2+y._2,x._3+y._3)},(x,y)=>(x._1++y._1,x._2+y._2,x._3+y._3),bucket)
+      IndexGrad.ASYNCaggregate(new ListBuffer[(Long,Double)](),BDV.zeros[Double](d),BDV.zeros[Double](d))((x, y)=>{x._1+=y._1;(x._1,x._2+y._2,x._3+y._3)}, (x, y)=>(x._1++y._1,x._2+y._2,x._3+y._3),bucket)
 
       while(bucket.getSize() <8){
         Thread.sleep(2)
@@ -109,13 +109,13 @@ object SparkASAGAScalar{
       for (i<-1 to bucket.getSize()){
         // TODO: add parindex to grad updates (K1, K2, V)
         val data = bucket.getFromBucket()
-        val info = data.getData()
+        val info = data.gettaskResult()
         val lis = info._1
         val gradient = info._2
         val alphai = info._3
-        ts = data.getTimeStamp()
-        parRecs = data.getRecordsNum()
-        parIndex = data.getPartitionIndex()
+        ts = data.getStaleness()
+        parRecs = data.getbatchSize()
+        parIndex = data.getWorkerID()
         for(key<-lis){
           ScalarMap.put(key._1, key._2)
         }

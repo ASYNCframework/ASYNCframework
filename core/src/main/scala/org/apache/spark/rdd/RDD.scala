@@ -84,17 +84,6 @@ abstract class RDD[T: ClassTag](
     // might have defined nested RDDs without running jobs with them.
     logWarning("Spark does not support nested RDDs (see SPARK-5063)")
   }
-  //scalastyle:off
-  //var jobResultAsync: Option[T] = None
-  //var resultRddObj : ResultsRdd[T]
-
-
-  /*def setResultsParam(rrdd: ResultsRdd[T]): Unit ={
-    resultRddObj = rrdd
-  }*/
-
-
-
 
   private def sc: SparkContext = {
     if (_sc == null) {
@@ -1059,14 +1048,16 @@ abstract class RDD[T: ClassTag](
 
 
 
-  def reduce_async(f: (T, T) => T, resultRddObj :ResultsRdd[T]): Unit = withScope {
+  def ASYNCreduce(f: (T, T) => T, AC :ASYNCcontext[T]): Unit = withScope {
 
-    if (resultRddObj.isOld()){ // If the same w (optimization var) is passed here, we shouldn't run the job again
+    if (AC.isOld()){ // If the same w (optimization var) is passed here, we shouldn't run the job again
       return
     }
 
-    val ts = resultRddObj.getCurrentTime() // time stamp for the w
-    resultRddObj.setLastTime(ts)
+
+    val startTime = System.currentTimeMillis()
+    val ts = AC.getCurrentTime() // time stamp for the w
+    AC.setLastTime(ts)
     val cleanF = sc.clean(f)
     val reducePartition: Iterator[T] => Tuple2[Int, Option[T]] = iter => {
       //if(resultRddObj.getRecordStat()){
@@ -1094,47 +1085,45 @@ abstract class RDD[T: ClassTag](
     //scalastyle:off
 
 
-    if(resultRddObj == null){
+    if(AC == null){
       throw new NullPointerException
     }
     val setter : RDDPartialRes[T]=>Unit= (update: RDDPartialRes[T]) =>{
-      resultRddObj.ResultList.put(update)
-    }
-    /*val xsetUpdateList = (update: T)=> {
-        resultRddObj.UpdateList.append(update)
-    }
-    val xsetTimeStampList = (time: Int)=> {
-      resultRddObj.TimeStampList.append(time)
-    }
-    val xsetRecList = (par: Int)=> {
-      resultRddObj.RecordsList.append(par)
+      AC.ResultList.put(update)
     }
 
-    val xsetParList = (par: Int)=> {
-      resultRddObj.parIndexList.append(par)
-    }*/
+    val setterSTAT : (Int,workerState)=>Unit= (index: Int, state: workerState) =>{
+      AC.STAT.put(index,state)
+    }
 
+    // make all partitions busy
+    // when they return their task result, then we make them free
+    val numPartitions = getNumPartitions
+    for (i<-0 until numPartitions){
+      val ws = AC.STAT.getOrElse(i, new workerState())
+      ws.setAvailability(false)
+      ASYNCcontext.updateSTAT(setterSTAT,i,ws)
+    }
 
 
     val mergeResult = (index: Int, taskResultSet: Tuple2[Int,Option[T]]) => {
       val taskResult = taskResultSet._2
       val taskRecords = taskResultSet._1
       if (taskResult.isDefined) {
-        //numFinishedPar+=1
-        //scalastyle:off
-        //println("RDD.scala: working on job result")
+        val endTime = System.currentTimeMillis()
+        val numTasks = AC.STAT.getOrElse(index,new workerState()).getNumTasks()
+        val time = (endTime - startTime)/(numTasks+1)
+        val staleness= AC.getCurrentTime()-ts
 
-        /*jobResult = jobResult match {
-          case Some(value) => Some(f(value, taskResult.get))
-          case None => taskResult
-        }*/
-        val data = new RDDPartialRes[T](taskResult.get,ts,taskRecords,index)
-        ResultsRdd.setList(setter, data)
-        //ResultsRdd.setFields(xsetUpdateList,xsetTimeStampList, xsetRecList, xsetParList,taskResult.get, ts, taskRecords,index)
-        //ResultsRdd.setTimeStampList(xsetTimeStampList, iter)
-        //ResultsRdd.setField(xsetterPart,numFinishedPar)
-        //Res.setLastUpdate(jobResult)
-        //Res.jobResult
+        val data = new RDDPartialRes[T](taskResult.get,staleness,taskRecords,index)
+        val ws = new workerState(staleness,time, true)
+        ws.updateNumTasks(1)
+        
+        ASYNCcontext.updateTaskResultList(setter, data)
+        ASYNCcontext.updateSTAT(setterSTAT,index,ws)
+        AC.add2currentTime(1)
+
+
       }
     }
 
@@ -1257,7 +1246,7 @@ abstract class RDD[T: ClassTag](
     * written by Saeed
     */
 
-  def aggregate_async[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U, resultRddObj :ResultsRdd[U]): Unit = withScope {
+  def ASYNCaggregate[U: ClassTag](zeroValue: U)(seqOp: (U, T) => U, combOp: (U, U) => U, resultRddObj :ASYNCcontext[U]): Unit = withScope {
 
     if(resultRddObj == null){
       throw new NullPointerException
@@ -1315,7 +1304,7 @@ abstract class RDD[T: ClassTag](
         val taskRecords = taskResultSet._1
 
         val data = new RDDPartialRes[U](taskResult.get,ts,taskRecords,index)
-        ResultsRdd.setList(setter, data)
+        ASYNCcontext.updateTaskResultList(setter, data)
         //ResultsRdd.setFields(xsetUpdateList, xsetTimeStampList, xsetRecList, xsetParList, taskResult.get, ts, taskRecords, index)
 
 

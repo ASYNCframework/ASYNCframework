@@ -8,7 +8,7 @@ import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV, Vector => BV}
 import breeze.linalg._
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import org.apache.spark.rdd.RDDCheckpointData
 import spire.random.Dist
 import java.io._
@@ -91,7 +91,7 @@ object SparkASGDThreadPlus{
     val w = Vectors.zeros(d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[Vector]
+    val bucket =new ASYNCcontext[Vector]
 
     var k = 0
     var obj = 0.0
@@ -151,16 +151,16 @@ object SparkASGDThreadPlus{
 
               info match {
                 case Some(value) =>{
-                  val ts = value.getTimeStamp()
+                  val ts = value.getStaleness()
                   if(globalTS-ts<taw ){
-                    val data = value.getData()
+                    val data = value.gettaskResult()
 
                     accGrad += toBreeze(data)
 
-                    val parIndex = value.getPartitionIndex()
+                    val parIndex = value.getWorkerID()
                     accQueue+=parIndex
                     //pendingQueue += parIndex
-                    accRecs += value.getRecordsNum()
+                    accRecs += value.getbatchSize()
 
                     //bucket.setCurrentTime(k)
                     //println("bucket updated")
@@ -275,7 +275,7 @@ object SparkASGDThreadPlus{
         val comOp: (Vector,Vector)=>Vector = (x,y )=>{
           (fromBreeze(toBreeze(x) + toBreeze(y)))
         }
-        IndexGrad.reduce_async(comOp,bucket)
+        IndexGrad.ASYNCreduce(comOp,bucket)
 
         //println("Submitted2")
         //NEW:

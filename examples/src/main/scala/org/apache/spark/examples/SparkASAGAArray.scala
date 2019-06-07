@@ -13,7 +13,7 @@ import org.apache.spark.mllib.linalg.distributed.{BlockMatrix, CoordinateMatrix,
 import breeze.numerics._
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.linalg.distributed.RowMatrix
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import org.apache.spark.broadcast._
 import org.apache.spark.ml.linalg
 import org.apache.spark.streaming.StreamingContext
@@ -50,7 +50,7 @@ object SparkASAGAArray{
     var w = BDV.zeros[Double](d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[(ListBuffer[Long],DenseVector[Double],DenseVector[Double])]
+    val bucket =new ASYNCcontext[(ListBuffer[Long],DenseVector[Double],DenseVector[Double])]
 
     val startTime = System.currentTimeMillis()
     var k = 0
@@ -138,7 +138,7 @@ object SparkASAGAArray{
         (x._2,e2,e3)
       }
 
-      IndexGrad.aggregate_async(new ListBuffer[Long](),BDV.zeros[Double](d),BDV.zeros[Double](d))((x,y)=>{x._1+=y._1;(x._1,x._2+y._2,x._3+y._3)},(x,y)=>(x._1++y._1,x._2+y._2,x._3+y._3),bucket)
+      IndexGrad.ASYNCaggregate(new ListBuffer[Long](),BDV.zeros[Double](d),BDV.zeros[Double](d))((x, y)=>{x._1+=y._1;(x._1,x._2+y._2,x._3+y._3)}, (x, y)=>(x._1++y._1,x._2+y._2,x._3+y._3),bucket)
 
       while(bucket.getSize() <1){
         Thread.sleep(2)
@@ -148,13 +148,13 @@ object SparkASAGAArray{
       for (i<-1 to bucket.getSize()){
         // TODO: add parindex to grad updates (K1, K2, V)
         val info = bucket.getFromBucket()
-        val data = bucket.getFromBucket().getData()
+        val data = bucket.getFromBucket().gettaskResult()
         val lis = data._1
         val gradient = data._2
-        ts = info.getTimeStamp()
+        ts = info.getStaleness()
         alphai = data._3
-        parRecs = info.getRecordsNum()
-        parIndex = info.getPartitionIndex()
+        parRecs = info.getbatchSize()
+        parIndex = info.getWorkerID()
         for(key<-lis){
           IndexMap.put(key,ts)
         }

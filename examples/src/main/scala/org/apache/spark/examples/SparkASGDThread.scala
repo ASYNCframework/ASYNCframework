@@ -8,7 +8,7 @@ import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV, Vector => BV}
 import breeze.linalg._
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import java.io._
 import BreezeConverters._
 
@@ -84,7 +84,7 @@ object SparkASGDThread{
     val w = Vectors.zeros(d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[Vector]
+    val bucket =new ASYNCcontext[Vector]
     bucket.setRecordStat(false)
     var k = 0
     //var accSize = 0
@@ -163,11 +163,11 @@ object SparkASGDThread{
 
               info match {
                 case Some(value) =>{
-                  val data = value.getData()
-                  val ts = value.getTimeStamp()
-                  if(k-ts<=taw ){
+                  val data = value.gettaskResult()
+                  val staleness = value.getStaleness()
+                  if(staleness<=taw ){
                     val gradient = data
-                    val parIndex = value.getPartitionIndex()
+                    val parIndex = value.getWorkerID()
                     FinishTimeTable.put(parIndex,System.currentTimeMillis())
 
                     if(k<100*numPart){
@@ -196,12 +196,8 @@ object SparkASGDThread{
 
                   }
                   else{
-                    val parIndex = value.getPartitionIndex()
+                    val parIndex = value.getWorkerID()
                     pendingQueue += parIndex
-                    //accnum+=1
-                    if(k%200==0){
-                      println("GEEZ"+k +" "+ts)
-                    }
                   }
 
 
@@ -297,11 +293,11 @@ object SparkASGDThread{
           gradfun(x._1, a.value)
         }
 
-        bucket.setCurrentTime(k)
+       // bucket.setCurrentTime(k)
         //globalTS+=1
 
 
-        IndexGrad.reduce_async(comOp,bucket)
+        IndexGrad.ASYNCreduce(comOp,bucket)
 
         //println("Submitted2")
         //NEW:

@@ -7,7 +7,7 @@ import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV,Vector=>BV}
 import breeze.linalg._
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import org.apache.spark.rdd.RDDCheckpointData
 import spire.random.Dist
 import java.io._
@@ -73,7 +73,7 @@ object SparkADMMThread{
     var w = BDV.zeros[Double](d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[BV[Double]]
+    val bucket =new ASYNCcontext[BV[Double]]
 
     var k = 0
     var obj = 0.0
@@ -133,14 +133,14 @@ object SparkADMMThread{
 
               info match {
                 case Some(value) =>{
-                  val data = value.getData()
+                  val data = value.gettaskResult()
 
                   var gradient = data
                   //val alphai = data._3
 
-                  val parIndex = value.getPartitionIndex()
-                  val parRecs = value.getRecordsNum()
-                  val ts = value.getTimeStamp()
+                  val parIndex = value.getWorkerID()
+                  val parRecs = value.getbatchSize()
+                  val ts = value.getStaleness()
 
                   //NEW:
                   // record time when partition is freed
@@ -250,7 +250,7 @@ object SparkADMMThread{
         //increase the time stamp by 1
         bucket.setCurrentTime(globalTS)
         globalTS+=1
-        IndexGrad.reduce_async(_+_,bucket)
+        IndexGrad.ASYNCreduce(_+_,bucket)
 
         //println("Submitted2")
         //NEW:

@@ -27,7 +27,7 @@ import org.apache.spark.mllib.linalg.distributed.{BlockMatrix, CoordinateMatrix,
 import breeze.numerics._
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.mllib.linalg.distributed.RowMatrix
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 
 import scala.collection.mutable.ListBuffer
 object SparkASAGA{
@@ -63,7 +63,7 @@ object SparkASAGA{
 
     var gradient = BDV.zeros[Double](d)
 
-    val bucket =new ResultsRdd[DenseVector[Double]]
+    val bucket =new ASYNCcontext[DenseVector[Double]]
     //points.setResultParam(f)
     //points.resultRddObj = f
     val startTime = System.currentTimeMillis()
@@ -84,7 +84,7 @@ object SparkASAGA{
 
 
       val IndexGrad = pSampled.map{case (p, index)=> (index, gradfun(p,w))}
-      IndexGrad.map(_._2).reduce_async(_+_, bucket)
+      IndexGrad.map(_._2).ASYNCreduce(_+_, bucket)
 
 
       while(bucket.getSize() <8){
@@ -96,10 +96,10 @@ object SparkASAGA{
 
         // TODO: add parindex to grad updates (K1, K2, V)
         val info = bucket.getFromBucket()
-        gradient = info.getData()
-        ts = info.getTimeStamp()
-        parRecs = info.getRecordsNum()
-        parIndex = info.getPartitionIndex()
+        gradient = info.gettaskResult()
+        ts = info.getStaleness()
+        parRecs = info.getbatchSize()
+        parIndex = info.getWorkerID()
 
         //val a = partitionInfo.filter(x=>x._1==parIndex).flatMap(x=>x._2.toList.unzip._2).map(x=>(x,1))
         val a = List[Long](1,2,3,4,5,6,7,8,9,10)

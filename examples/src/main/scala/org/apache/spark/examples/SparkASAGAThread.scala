@@ -7,7 +7,7 @@ import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV, Vector => BV}
 import breeze.linalg._
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import org.apache.spark.rdd.RDDCheckpointData
 import spire.random.Dist
 import java.io._
@@ -99,7 +99,7 @@ object SparkASAGAThread{
     val w = Vectors.zeros(d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[(ListBuffer[(Long,Double)],Vector)]
+    val bucket =new ASYNCcontext[(ListBuffer[(Long,Double)],Vector)]
     bucket.setRecordStat(false)
 
     var k = 0
@@ -185,13 +185,13 @@ object SparkASAGAThread{
 
               info match {
                 case Some(value) =>{
-                  val data = value.getData()
-                  val ts = value.getTimeStamp()
+                  val data = value.gettaskResult()
+                  val ts = value.getStaleness()
 
                   if(k-ts <= taw ){
                     val lis = data._1
                     val gradient_alphai = data._2
-                    val parIndex = value.getPartitionIndex()
+                    val parIndex = value.getWorkerID()
                     FinishTimeTable.put(parIndex,System.currentTimeMillis()-(extraTimeEn-extraTimeSt))
                     if(k<100*numPart){
                       //println(extraTimeEn-extraTimeSt)
@@ -229,7 +229,7 @@ object SparkASAGAThread{
                     extraTimeEn = System.currentTimeMillis()
 
                   }else{
-                    val parIndex = value.getPartitionIndex()
+                    val parIndex = value.getWorkerID()
                     pendingQueue += parIndex
                     accnum+=1
                     if(k%200==0){
@@ -366,7 +366,7 @@ object SparkASAGAThread{
         //increase the time stamp by 1
         bucket.setCurrentTime(k)
 
-        IndexGrad.aggregate_async(new ListBuffer[(Long, Double)](), Vectors.zeros(d))((x, y) => {
+        IndexGrad.ASYNCaggregate(new ListBuffer[(Long, Double)](), Vectors.zeros(d))((x, y) => {
           x._1 += y._1;
           (x._1, comOp(x._2,y._2))
         }, (x, y) => (x._1 ++ y._1,comOp(x._2,y._2)), bucket)

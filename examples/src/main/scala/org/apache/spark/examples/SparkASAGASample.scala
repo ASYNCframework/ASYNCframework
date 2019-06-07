@@ -6,7 +6,7 @@ import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV, Vector => BV}
 import breeze.linalg._
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import org.apache.spark.rdd.RDDCheckpointData
 import spire.random.Dist
 import java.io._
@@ -78,7 +78,7 @@ object SparkASAGASample{
     var w = BDV.zeros[Double](d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[(ListBuffer[(Long,Double)],DenseVector[Double],DenseVector[Double])]
+    val bucket =new ASYNCcontext[(ListBuffer[(Long,Double)],DenseVector[Double],DenseVector[Double])]
 
     var k = 0
     var ts = 0
@@ -192,7 +192,7 @@ object SparkASAGASample{
         ((x._2,e2._2),e2._1,oldGrad)
       }
 
-      IndexGrad.aggregate_async(new ListBuffer[(Long,Double)](),BDV.zeros[Double](d),BDV.zeros[Double](d))((x,y)=>{x._1+=y._1;(x._1,x._2+y._2,x._3+y._3)},(x,y)=>(x._1++y._1,x._2+y._2,x._3+y._3),bucket)
+      IndexGrad.ASYNCaggregate(new ListBuffer[(Long,Double)](),BDV.zeros[Double](d),BDV.zeros[Double](d))((x, y)=>{x._1+=y._1;(x._1,x._2+y._2,x._3+y._3)}, (x, y)=>(x._1++y._1,x._2+y._2,x._3+y._3),bucket)
 
       // wait until part of the workers are finished
       var bsize = bucket.getSize()
@@ -211,13 +211,13 @@ object SparkASAGASample{
         //Thread.sleep(10)
         // TODO: add parindex to grad updates (K1, K2, V)
         val data = bucket.getFromBucket()
-        val info = data.getData()
+        val info = data.gettaskResult()
         val lis = info._1
         var gradient = info._2
         val alphai = info._3
-        ts = data.getTimeStamp()
-        parRecs = data.getRecordsNum()
-        parIndex = data.getPartitionIndex()
+        ts = data.getStaleness()
+        parRecs = data.getbatchSize()
+        parIndex = data.getWorkerID()
         pendingList.append(parIndex)
         //workersList.append(parIndex)
         // check for the delay based on taw

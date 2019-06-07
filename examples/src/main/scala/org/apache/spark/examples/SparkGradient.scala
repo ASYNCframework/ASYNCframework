@@ -27,7 +27,7 @@ import org.apache.spark.mllib.linalg.distributed.{BlockMatrix, CoordinateMatrix,
 import breeze.numerics._
 import org.apache.spark.ml.feature.LabeledPoint
 import org.apache.spark.mllib.linalg.distributed.RowMatrix
-import org.apache.spark.rdd.ResultsRdd
+import org.apache.spark.rdd.ASYNCcontext
 object SparkGradient{
 
   def main(args: Array[String]): Unit = {
@@ -57,7 +57,7 @@ object SparkGradient{
 
     var gradient = BDV.zeros[Double](d)
 
-    val bucket =new ResultsRdd[DenseVector[Double]]
+    val bucket =new ASYNCcontext[DenseVector[Double]]
     //points.setResultParam(f)
     //points.resultRddObj = f
     val startTime = System.currentTimeMillis()
@@ -71,7 +71,7 @@ object SparkGradient{
     while (k < numIteration){
       //println("******** iteration "+k+"********")
       if(changed ){
-        points.map(p=>  (new BDV[Double](p.features.toArray).t * w - p.label) *  new BDV[Double](p.features.toArray) ).reduce_async(_+_, bucket  )
+        points.map(p=>  (new BDV[Double](p.features.toArray).t * w - p.label) *  new BDV[Double](p.features.toArray) ).ASYNCreduce(_+_, bucket  )
         numberSubmits = numberSubmits + numPart
         if (numberSubmits>=taw) changed = false else changed = true
       }
@@ -82,11 +82,11 @@ object SparkGradient{
 
       for (i<-1 to bucket.getSize()){
           val data = bucket.getFromBucket()
-          gradient = data.getData()
+          gradient = data.gettaskResult()
           //println("gradient is "+ gradient)
           // TODO: check gradient delay
-          ts = data.getTimeStamp()
-          parRecs = data.getRecordsNum()
+          ts = data.getStaleness()
+          parRecs = data.getbatchSize()
 
         if(k-ts < taw){
             gradient :*= (2.0/parRecs)

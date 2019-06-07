@@ -8,7 +8,7 @@ import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV, Vector => BV}
 import breeze.linalg._
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.{RDD, ResultsRdd}
+import org.apache.spark.rdd.{RDD, ASYNCcontext}
 import org.apache.spark.rdd.RDDCheckpointData
 import spire.random.Dist
 import java.io._
@@ -83,7 +83,7 @@ object SparkASGDSync{
     val w = Vectors.zeros(d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ResultsRdd[Vector]
+    val bucket =new ASYNCcontext[Vector]
     bucket.setRecordStat(false)
     var k = 0
     var accSize = 0
@@ -213,7 +213,7 @@ object SparkASGDSync{
         //increase the time stamp by 1
         bucket.setCurrentTime(k)
 
-        IndexGrad.reduce_async(comOp,bucket)
+        IndexGrad.ASYNCreduce(comOp,bucket)
 
         //println("Submitted2")
         //NEW:
@@ -245,7 +245,7 @@ object SparkASGDSync{
             case Some(value) =>{
               bsize +=1
 
-              val parIndex = value.getPartitionIndex()
+              val parIndex = value.getWorkerID()
               FinishTimeTable.put(parIndex,System.currentTimeMillis())
               if(k<100){
                 xs = System.currentTimeMillis()
@@ -259,7 +259,7 @@ object SparkASGDSync{
               }
 
               //val ts = value.getTimeStamp()
-              val data = value.getData()
+              val data = value.gettaskResult()
               accGrad += toBreeze(data)
 
             }
