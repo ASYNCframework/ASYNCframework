@@ -6,17 +6,7 @@
     </artifacts-to-build>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c9c5b8dc-11d4-4596-a904-6821380e70ec" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/src/main/scala/org/apache/spark/examples/SparkASAGASync.scala" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/src/main/scala/org/apache/spark/examples/SparkASAGAThread.scala" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/src/main/scala/org/apache/spark/examples/SparkASGDSync.scala" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/src/main/scala/org/apache/spark/examples/SparkASGDThread.scala" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/src/main/scala/org/apache/spark/examples/SparkSGDMLLIB.scala" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/target/streams/$global/dependencyPositions/$global/streams/update_cache_2.10/output_dsp" beforeDir="false" afterPath="$PROJECT_DIR$/project/target/streams/$global/dependencyPositions/$global/streams/update_cache_2.10/output_dsp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/project/target/streams/compile/copyResources/$global/streams/copy-resources" beforeDir="false" afterPath="$PROJECT_DIR$/project/target/streams/compile/copyResources/$global/streams/copy-resources" afterDir="false" />
-    </list>
+    <list default="true" id="c9c5b8dc-11d4-4596-a904-6821380e70ec" name="Default Changelist" comment="" />
     <ignored path="$PROJECT_DIR$/external/kafka-0-10-assembly/target/" />
     <ignored path="$PROJECT_DIR$/sql/hive/target/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -83,7 +73,7 @@
           <entry key="mvn" value="3" />
           <entry key="properties" value="5" />
           <entry key="sbt" value="10" />
-          <entry key="scala" value="672" />
+          <entry key="scala" value="674" />
           <entry key="spark-build-info" value="2" />
           <entry key="vmoptions" value="5" />
           <entry key="xml" value="5" />
@@ -97,7 +87,7 @@
           <entry key="Manifest" value="7" />
           <entry key="PLAIN_TEXT" value="16" />
           <entry key="Properties" value="5" />
-          <entry key="Scala" value="672" />
+          <entry key="Scala" value="674" />
           <entry key="XML" value="5" />
           <entry key="sbt" value="5" />
         </counts>
@@ -127,7 +117,7 @@
         <entry file="file://$PROJECT_DIR$/ASYNCsamples/src/main/scala/org/apache/async/SparkASGDSync.scala">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="227">
-              <caret line="210" column="25" selection-start-line="210" selection-start-column="25" selection-end-line="210" selection-end-column="25" />
+              <caret line="210" column="25" lean-forward="true" selection-start-line="210" selection-start-column="25" selection-end-line="210" selection-end-column="25" />
               <folding>
                 <element signature="e#43#84#0" expanded="true" />
               </folding>
@@ -412,7 +402,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1560532910301" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1560532983623" />
     <property name="last_directory_selection" value="$PROJECT_DIR$/ASYNCsamples/src/main/scala" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/ASYNCsamples/src/main/scala/org/apache/async" />
     <property name="project.structure.last.edited" value="Modules" />
@@ -652,8 +642,9 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="81" y="27" width="2479" height="1388" extended-state="0" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.4901316" visible="true" weight="0.32785505" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4901316" visible="true" weight="0.32785505" />
       <window_info id="Structure" order="1" sideWeight="0.50986844" side_tool="true" weight="0.3708386" />
       <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="3" />
@@ -662,7 +653,7 @@
       <window_info id="Image Layers" order="6" />
       <window_info anchor="bottom" id="Version Control" order="0" show_stripe_button="false" />
       <window_info anchor="bottom" id="Terminal" order="1" weight="0.3401421" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49852508" visible="true" weight="0.46927872" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49852508" visible="true" weight="0.29118434" />
       <window_info anchor="bottom" x="2086" y="128" width="1553" height="1416" id="Debug" order="3" sideWeight="0.4997916" weight="0.42386466" />
       <window_info anchor="bottom" id="Event Log" order="4" sideWeight="0.5014749" side_tool="true" weight="0.3277087" />
       <window_info anchor="bottom" id="ANTLR Preview" order="5" weight="0.32914045" />
@@ -1093,13 +1084,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ASYNCsamples/src/main/scala/org/apache/async/BreezeConverters.scala">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="189">
-          <caret line="8" column="7" selection-start-line="8" selection-start-column="7" selection-end-line="8" selection-end-column="7" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ASYNCsamples/src/main/scala/org/apache/async/SparkASAGASync.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="315">
@@ -1107,17 +1091,24 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/ASYNCsamples/src/main/scala/org/apache/async/BreezeConverters.scala">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="8" column="7" selection-start-line="8" selection-start-column="7" selection-end-line="8" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/core/src/main/scala/org/apache/spark/rdd/RDD.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="385">
-          <caret line="1093" column="5" selection-start-line="1093" selection-start-column="5" selection-end-line="1093" selection-end-column="5" />
+          <caret line="1086" column="6" selection-start-line="1086" selection-start-column="6" selection-end-line="1086" selection-end-column="6" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/ASYNCsamples/src/main/scala/org/apache/async/SparkASGDSync.scala">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="227">
-          <caret line="210" column="25" selection-start-line="210" selection-start-column="25" selection-end-line="210" selection-end-column="25" />
+          <caret line="210" column="25" lean-forward="true" selection-start-line="210" selection-start-column="25" selection-end-line="210" selection-end-column="25" />
           <folding>
             <element signature="e#43#84#0" expanded="true" />
           </folding>
