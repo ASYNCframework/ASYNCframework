@@ -83,8 +83,8 @@ object SparkASGDSync{
     val w = Vectors.zeros(d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ASYNCcontext[Vector]
-    bucket.setRecordStat(false)
+    val AC =new ASYNCcontext[Vector]()
+    AC.setRecordStat(false)
     var k = 0
     var accSize = 0
     val pointsIndexed = points.zipWithIndex.cache()
@@ -211,9 +211,9 @@ object SparkASGDSync{
         }
 
         //increase the time stamp by 1
-        bucket.setCurrentTime(k)
+        //AC.setCurrentTime(k)
 
-        IndexGrad.ASYNCreduce(comOp,bucket)
+        IndexGrad.ASYNCreduce(comOp,AC)
 
         //println("Submitted2")
         //NEW:
@@ -239,7 +239,7 @@ object SparkASGDSync{
         while (bsize<numPart){
           // TODO: make all info in one data structure
           //var info
-          val info = Option(bucket.getFromBucket())
+          val info = Option(AC.ASYNCcollectAll())
 
           info match {
             case Some(value) =>{

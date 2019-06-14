@@ -1,20 +1,24 @@
 //scalastyle:off
 package org.apache.spark.rdd
 
-//import com.oracle.deploy.update.UpdateCheckListener
-
 import java.util.concurrent.LinkedBlockingQueue
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
-import scala.language.implicitConversions
-import scala.reflect.{ClassTag, classTag}
+import org.apache.spark.SparkContext
+import org.apache.spark.broadcast.Broadcast
 
+import scala.collection.mutable
+import scala.language.implicitConversions
+import scala.reflect.ClassTag
+import org.apache.spark.broadcast._
 
 class ASYNCcontext[T: ClassTag]() extends  Serializable {
-  var ResultList = new LinkedBlockingQueue[RDDPartialRes[T]]()
-  val STAT = new mutable.HashMap[Int,workerState]()
+  val ResultList = new LinkedBlockingQueue[RDDPartialRes[T]]()
+  val STAT = new mutable.HashMap[Int,workerState[T]]()
   //Initialize(STAT)
+  /*def ASYNCbroadcast[T: ClassTag](value: T): BroadcastWrapper[T] = {
+    new BroadcastWrapper(sc,value)
+  }*/
+
 
   private var exactRec = false
   private var CurrentTime = 0
@@ -49,7 +53,11 @@ class ASYNCcontext[T: ClassTag]() extends  Serializable {
     this.CurrentTime == this.LastTime
   }
 
-  def getFromBucket() : RDDPartialRes[T] ={
+  def ASYNCcollect() : T ={
+    this.ResultList.take().gettaskResult()
+  }
+
+  def ASYNCcollectAll(): RDDPartialRes[T]={
     this.ResultList.take()
   }
 
@@ -58,11 +66,16 @@ class ASYNCcontext[T: ClassTag]() extends  Serializable {
   }
 
 
+  def hasNext():Boolean={
+    !this.ResultList.isEmpty
+  }
+
+
 }
 
 
 object ASYNCcontext {
   def updateTaskResultList[T](setter: RDDPartialRes[T] => Unit, value: RDDPartialRes[T]){setter(value)}
-  def updateSTAT[T](setter: (Int, workerState) => Unit, index: Int, value: workerState){setter(index,value)}
+  def updateSTAT[T](setter: (Int, workerState[T]) => Unit, index: Int, value: workerState[T]){setter(index,value)}
 
 }

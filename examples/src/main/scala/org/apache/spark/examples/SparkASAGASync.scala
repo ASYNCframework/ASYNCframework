@@ -93,8 +93,8 @@ object SparkASAGASync{
     val w = Vectors.zeros(d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ASYNCcontext[(ListBuffer[(Long,Double)],Vector)]
-    bucket.setRecordStat(false)
+    val AC =new ASYNCcontext[(ListBuffer[(Long,Double)],Vector)]()
+    AC.setRecordStat(false)
 
     var k = 0
     //var accSize = 0
@@ -160,9 +160,7 @@ object SparkASAGASync{
     while(k<numIteration){
 
           //println("******** iteration "+k+"********")
-          //println(bucket.isOld())
 
-          // if w has not been updated, do nothing(sleep for a bit)
             val a = sc.broadcast(w)
             val cTime = System.currentTimeMillis()
             // generate  random sampling on the driver
@@ -240,12 +238,12 @@ object SparkASAGASync{
             }
 
             //increase the time stamp by 1
-            bucket.setCurrentTime(k)
+            //AC.setCurrentTime(k)
 
             IndexGrad.ASYNCaggregate(new ListBuffer[(Long, Double)](), Vectors.zeros(d))((x, y) => {
               x._1 += y._1;
               (x._1, comOp(x._2,y._2))
-            }, (x, y) => (x._1 ++ y._1,comOp(x._2,y._2)), bucket)
+            }, (x, y) => (x._1 ++ y._1,comOp(x._2,y._2)), AC)
 
             //NEW:
             val xe = System.currentTimeMillis()
@@ -265,7 +263,7 @@ object SparkASAGASync{
           while( bsize<numPart) {
             //math.floor(numPart*bucketRatio)
             // empty list of workers to assign for later
-            val info = Option(bucket.getFromBucket())
+            val info = Option(AC.ASYNCcollectAll())
             info match {
               case Some(value) => {
                 bsize += 1

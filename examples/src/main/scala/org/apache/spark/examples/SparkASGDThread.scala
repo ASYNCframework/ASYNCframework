@@ -1,4 +1,5 @@
 //scalastyle:off
+
 package org.apache.spark.examples
 
 import org.apache.spark.mllib.util.MLUtils
@@ -8,10 +9,10 @@ import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import breeze.linalg.{DenseVector => BDV, SparseVector => BSV, Vector => BV}
 import breeze.linalg._
 import org.apache.spark.mllib.regression.LabeledPoint
-import org.apache.spark.rdd.{RDD, ASYNCcontext}
+import org.apache.spark.rdd.{ASYNCcontext, RDD,workerState}
 import java.io._
-import BreezeConverters._
 
+import BreezeConverters._
 import org.apache.spark.mllib.BLASUtil._
 //
 // import org.apache.spark.mllib.linalg.BLAS.{axpy, dot, scal}
@@ -84,8 +85,8 @@ object SparkASGDThread{
     val w = Vectors.zeros(d)
 
     //val bucket =new ResultsRdd[DenseVector[Double]]
-    val bucket =new ASYNCcontext[Vector]
-    bucket.setRecordStat(false)
+    val AC =new ASYNCcontext[Vector]()
+    AC.setRecordStat(false)
     var k = 0
     //var accSize = 0
     val pointsIndexed = points.zipWithIndex.cache()
@@ -139,6 +140,8 @@ object SparkASGDThread{
         stragglerNormal.append(c*4)
     }
 
+    //var f = (x: STATstruct) => x.state.foreach(y=>y.)
+
     var culTime = 0.0
     var culCount = 0
 
@@ -151,20 +154,21 @@ object SparkASGDThread{
       override def run {
         while(k<numIteration){
 
-          val bsize = bucket.getSize()
+          val bsize = AC.getSize()
           if(bsize>0){
-            //math.floor(numPart*bucketRatio)
-            // empty list of workers to assign for later
-            //update the variable
             xs = 0L
             xe = 0L
             for (i<-0 until bsize){
-              val info = Option(bucket.getFromBucket())
+              val info = Option(AC.ASYNCcollectAll())
 
               info match {
                 case Some(value) =>{
                   val data = value.gettaskResult()
                   val staleness = value.getStaleness()
+                  //println("stalenes:"+staleness)
+                  //println("max staleness:"+AC.STAT.get(0).get.getMaxStaleness())
+                  //println("available workers:"+AC.STAT.get(0).get.getAvailableWorkers())
+
                   if(staleness<=taw ){
                     val gradient = data
                     val parIndex = value.getWorkerID()
@@ -225,24 +229,21 @@ object SparkASGDThread{
     var flag = false
     while (k < numIteration) {
       //println("******** iteration "+k+"********")
-      //println(bucket.isOld())
-
-      // if w has not been updated, do nothing(sleep for a bit)
-      if(pendingQueue.size>=math.floor(numPart*bucketRatio)){
+      //if(pendingQueue.size>=math.floor(numPart*bucketRatio)){
+      var init_workers= numPart
+      if(k!=0){
+        init_workers = AC.STAT.get(0).get.getAvailableWorkers()
+      }
+      if(init_workers>=math.floor(numPart*bucketRatio)){
         //define workersList at the beginning of each iteration
         val workersList =  new ListBuffer[Int]()
         val Qsize = pendingQueue.size
         for( q<-0 until Qsize){
           workersList.append(pendingQueue.dequeue())
         }
-        //println(workersList)
 
-        //workersList++=pendingList
-        //pendingList.clear()
-
-        //println(workersList+ "at "+k)
         val a = sc.broadcast(w)
-
+        //val a =AC.ASYNCbroadcast(w)
         if(k>100*numPart && !flag){
           flag = true
           //val tInfo = TaskCompletionTime.get(0).getOrElse((1,0L))
@@ -252,9 +253,7 @@ object SparkASGDThread{
 
         //println(avgDelay)
 
-        val pFiltered = pointsIndexed.mapPartitionsWithIndex ( (index: Int, it: Iterator[(LabeledPoint,Long)])=>{
-          // check what workers have finished their jobs
-          // these workers should compute the gradients
+        /*val pFiltered = pointsIndexed.mapPartitionsWithIndex ( (index: Int, it: Iterator[(LabeledPoint,Long)])=>{
           if(workersList.contains(index)){
             if(flag ){
               if(!CloudFlag){
@@ -282,6 +281,34 @@ object SparkASGDThread{
             Iterator.empty
           }
 
+        } )*/
+        val f = (state: workerState[Vector])=>state.getAvailableWorkers()>= math.floor(numPart*bucketRatio)
+        val pFiltered1=pointsIndexed.ASYNCbarrier(f,AC.STAT)
+        val pFiltered = pFiltered1.mapPartitionsWithIndex ( (index: Int, it: Iterator[(LabeledPoint,Long)])=>{
+            if(flag ){
+              if(!CloudFlag){
+                if(index ==0 && coeff>0){
+                  Thread.sleep(math.round(coeff*avgDelay))
+                }
+              }
+              else{
+                if (stragglerLongTail.contains(index)){
+                  val rnd = new scala.util.Random()
+                  val c = rnd.nextDouble()*7.5+2.5
+                  Thread.sleep(math.round(c*avgDelay))
+                }
+                if(stragglerNormal.contains(index)){
+                  val rnd = new scala.util.Random()
+                  val c = rnd.nextDouble()+1.5
+                  Thread.sleep(math.round(c*avgDelay))
+                }
+
+              }
+            }
+            it
+
+
+
         } )
 
         val pSampled  = pFiltered.sample(false,b,InputSeed+k+1)
@@ -297,7 +324,7 @@ object SparkASGDThread{
         //globalTS+=1
 
 
-        IndexGrad.ASYNCreduce(comOp,bucket)
+        IndexGrad.ASYNCreduce(comOp,AC)
 
         //println("Submitted2")
         //NEW:

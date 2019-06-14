@@ -1,6 +1,8 @@
 //scalastyle:off
 package org.apache.spark.rdd
 
+import scala.reflect.ClassTag
+
 
 /*
  * This class holds the state of a worker
@@ -9,20 +11,23 @@ package org.apache.spark.rdd
  * 2) average task completion time(ms),
  * 3) availability
  */
-class workerState () {
+class workerState [T](AC :ASYNCcontext[T],
+                      stale: Int,
+                      time:Long,
+                      avail :Boolean)  extends Serializable {
 
-  private var staleness = 0
-  private var averageTaskTime = 0L
-  private var availability = false
+
+  //private var AC:ASYNCcontext[T]
+  private var staleness = stale
+  private var averageTaskTime = time
+  private var availability = avail
   private var numTasks = 0 // number of executed tasks until now
   private var Max_Staleness = 0 // max staleness among all workers
   private var Available_Workers = 0 // number of available workers
 
-  def this(stale: Int, time:Long, avail :Boolean){
-    this()
-    this.staleness = stale
-    this.averageTaskTime = time
-    this.availability = avail
+
+  def this(AC:ASYNCcontext[T]){
+    this(AC,0,0L,false)
   }
 
 
@@ -43,16 +48,37 @@ class workerState () {
     this.availability = a
   }
 
-  def setAvailableWorkers(n : Int): Unit={
-    this.Available_Workers = n
-  }
-
-  def setMaxStaleness(s: Int): Unit={
-    this.Max_Staleness = s
-  }
-
   def getNumTasks(): Int ={
     this.numTasks
+  }
+
+  def getAvailability():Boolean={
+    this.availability
+  }
+
+  def getStaleness():Int={
+    this.staleness
+  }
+
+  def getAvailableWorkers(): Int={
+    var n = 0
+    for(s<-AC.STAT){
+      if(s._2.getAvailability()==true){
+        n=n+1
+      }
+    }
+    Available_Workers = n
+    n
+  }
+
+  def getMaxStaleness(): Int={
+    var n = -1
+    for(s<-AC.STAT){
+      if( s._2.getStaleness() > n)
+        n = s._2.getStaleness()
+    }
+    Max_Staleness = n
+    n
   }
 
 
