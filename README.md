@@ -3,12 +3,21 @@
 ASYNC is built on top of Spark 2.3.2, a fast and general cluster computing system for Big Data. It provides an API in Scala(2.11) for implementing asynchronous optimization methods. The compilation is the same as Apache Spark. You can find the latest Spark documentation, including a programming guide, on the [project web page](http://spark.apache.org/documentation.html).
 
 
-## Compiling ASYNC
+# Compiling ASYNC
 
-ASYNC has the same compilation process as Spark. For more info about compiling Spark please refer to https://spark.apache.org/docs/2.3.2/building-spark.html
+ASYNC has the same compilation process as Spark. For more info about compiling Spark please refer to https://spark.apache.org/docs/2.3.2/building-spark.html. Here we briefly mention building ASYNC using **SBT**.
+
+## Building with SBT
+Maven is the official build tool recommended for packaging Spark, and is the build of reference. But SBT is supported for day-to-day development since it can provide much faster iterative compilation. More advanced developers may wish to use SBT.
+
+The SBT build is derived from the Maven POM files, and so the same Maven profiles and variables can be set to control the SBT build. For example:
+
+```sh
+./build/sbt package
+```
 
 
-## Tests
+# Tests
 ASYNC comes with two asynchronous optimization algorithm, Asynchronous Stochastic Gradient Descent [ASGD](https://papers.nips.cc/paper/4687-large-scale-distributed-deep-networks.pdf) and [ASAGA](http://proceedings.mlr.press/v54/leblond17a/leblond17a.pdf) which are located in the `ASYNCsamples` directory:
 
 - SparkASAGAThread: The synchronous version of SAGA (ASAGA) with history.
