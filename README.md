@@ -11,15 +11,15 @@ ASYNC has the same compilation process as Spark. For more info about compiling S
 ## Tests
 ASYNC comes with two asynchronous optimization algorithm, Asynchronous Stochastic Gradient Descent [ASGD](https://papers.nips.cc/paper/4687-large-scale-distributed-deep-networks.pdf) and [ASAGA](http://proceedings.mlr.press/v54/leblond17a/leblond17a.pdf) which are located in the `ASYNCsamples` directory:
 
-SparkASAGAThread: The synchronous version of SAGA (ASAGA) with history
+-SparkASAGAThread: The synchronous version of SAGA (ASAGA) with history.
 
-SparkASAGASync: The synchronous version of SAGA with history
+-SparkASAGASync: The synchronous version of SAGA with history.
 
-SparkASGDThread: The asynchronous version of Stochastic Gradient Descent (ASGD)
+-SparkASGDThread: The asynchronous version of Stochastic Gradient Descent (ASGD).
 
-SparkASGDSync: The synchronous version of Stochastic Gradient Descent (SGD) 
+-SparkASGDSync: The synchronous version of Stochastic Gradient Descent (SGD).
 
-SparkSGDMLLIB: the MLlib implementation of SGD for comparison
+-SparkSGDMLLIB: The MLlib implementation of SGD for comparison.
 
 To run each method, simply run:
 
