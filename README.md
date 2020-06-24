@@ -9,7 +9,7 @@ ASYNC has the same compilation process as Spark. For more info about compiling S
 
 
 ## Tests
-ASYNC comes with two asynchronous optimization algorithm, Asynchronous Stochastic Gradient Descent [ASGD](https://papers.nips.cc/paper/4687-large-scale-distributed-deep-networks.pdf) and [ASAGA](http://proceedings.mlr.press/v54/leblond17a/leblond17a.pdf). These programs are located in the ASYNCsamples directory:
+ASYNC comes with two asynchronous optimization algorithm, Asynchronous Stochastic Gradient Descent [ASGD](https://papers.nips.cc/paper/4687-large-scale-distributed-deep-networks.pdf) and [ASAGA](http://proceedings.mlr.press/v54/leblond17a/leblond17a.pdf) which are located in the `ASYNCsamples` directory:
 
 SparkASAGAThread: The synchronous version of SAGA (ASAGA) with history
 
