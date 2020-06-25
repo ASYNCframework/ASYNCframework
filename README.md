@@ -30,13 +30,32 @@ ASYNC comes with two asynchronous optimization algorithm, Asynchronous Stochasti
 
 - SparkSGDMLLIB: The MLlib implementation of SGD for comparison.
 
-To run each method, simply run:
+The template for running each method, or any new developed one is identical running a Spark application:
 
 ```sh
 ./bin/spark-submit [Spark Args] --class <class> [params]
 ```
 
-For example, 
+# Complete guide for all experiments in the paper
 
+We ran two optimization methods, synchronous stochastic gradient descent (SGD) and SAGA and their asynchronous variants (ASGD and ASAGA) on the XSEDE Comet CPUs with our ASYNC framework and compared it to the synchronous implementation of Mllib. All experiments use Scala 2.11 and Spark 2.3.2. We use three datasets for evaluation of our framework all of which are publically available.
 
-> **_NOTE:_** To see some examples please refer to scripts files in ASYNCsamples directory
+In order to run the experiments, the code should be compiled to generate jar files that then execute with spark-submit. Evaluation scripts are provided to simplify the execution of the experiments. We use 9 compute nodes from Comet, one for master node and eight as workers. Each worker has one executor with 2 cores. The driver memory is set to 15 Gb and the executor memory is set to 13Gb in all experiments.
+
+The implemented algorithms have the following input parameters: [path] [file name] [#columns] [#rows] [#partitions] [#iterations] [step size] [sampling rate] [beta] [delay intensity] [seed]
+
+In order to generate the figures in the paper, the parameters should be set as follows; all parameters are tuned. If a parameter is not mentioned for an algorithm, it means it is not part of that algorithm. Also, some parameters are fixed throughout all experiments: #partitions = 32, beta = 0.93, seed = 42.
+
+Figure 2. for mnist8m > dataset:#iteration = 10000, step size = 8e-7, sampling rate = 0.1 for epsilon> dataset:#iteration = 3000, step size = 10, sampling rate = 0.1 for rcv1_full.bianry > dataset:#iteration = 3000, step size = 10, sampling rate = 0.05
+
+Figure 3. In this figure delay intensity is chosento be [0.3, 0.6, 1.0] to generate all results for each dataset. Other parameters are: For the ASYNC results: for mnist8m > dataset:#iteration = 300000, step size = 0.25e-7, sampling rate = 0.1 for epsilon> dataset:#iteration = 320000, step size = 0.3125, sampling rate = 0.1 for rcv1_full.bianry > dataset:#iteration = 100000, step size = 0.3125, sampling rate = 0.05 For the Sync results: for mnist8m > dataset:#iteration = 10000, step size = 8e-7, sampling rate = 0.1 for epsilon> dataset:#iteration = 10000, step size = 10, sampling rate = 0.1 for rcv1_full.bianry > dataset:#iteration = 3000, step size = 10, sampling rate = 0.05
+
+Figure 4 is generated from the outputs of the experiments done in Figure 3.
+
+Figure 5. In this figure delay intensity is chosen from [0.3, 0.6, 1.0] to generate the results for each dataset. Other parameters are: For the ASYNC results: for mnist8m > dataset:#iteration = 45000, step size = 0.1875e-7, sampling rate = 0.01 for epsilon> dataset:#iteration = 130000, step size = 0.03125, sampling rate = 0.1 for rcv1_full.bianry > dataset:#iteration = 100000, step size = 0.3125, sampling rate = 0.02 For the Sync results: for mnist8m > dataset:#iteration = 1500, step size = 6e-7, sampling rate = 0.01 for epsilon> dataset:#iteration = 4000, step size = 1, sampling rate = 0.1 for rcv1_full.bianry > dataset:#iteration = 3000, step size = 10, sampling rate = 0.02
+
+Figure 6 is generated from the outputs of the experiments in Figure 5.
+
+For Figures 7 and 8 we use 32 workers, each has one executor with 2 cores and 5Gb of memory. The parameter beta is set to 0.7 and delay intensity is set to -1 and batch rate is set to 0.1 for both figures. Other parameters are: Figure 7: mnist8m-ASYNC: #iteration = 420000 [step size]:3.3333e-3 mnist8m-Sync: #iteration = 14000 [step size]:0.1 epsilon-ASYNC:#iteration = 40000 [step size]:3.33e-1 epsilon-Sync:#iteration = 13000 [step size]:10 Figure 8: mnist8m-ASYNC: #iteration = 12000[step size]:1.3333e-3 mnist8m-Sync: #iteration = 4000[step size]:0.04 epsilon-ASYNC:#iteration = 30000 [step size]:3.33e-2 epsilon-Sync:#iteration = 10000 [step size]:1
+
+Table 3 is generated based on the outputs of Figure 7 and 8.
