@@ -42,11 +42,11 @@ We ran two optimization methods, synchronous stochastic gradient descent (SGD) a
 
 In order to run the experiments, the code should be compiled to generate jar files that then execute with spark-submit. Evaluation scripts are provided to simplify the execution of the experiments. We use 9 compute nodes from Comet, one for master node and eight as workers. Each worker has one executor with 2 cores. The driver memory is set to 15 Gb and the executor memory is set to 13Gb in all experiments.
 
-The implemented algorithms have the following input parameters: [path] [file name] [#columns] [#rows] [#partitions] [#iterations] [step size] [sampling rate] [beta] [delay intensity] [seed]
+The implemented algorithms have the following input parameters: `[path] [file name] [#columns] [#rows] [#partitions] [#iterations] [step size] [sampling rate] [beta] [delay intensity] [seed]`
 
 In order to generate the figures in the paper, the parameters should be set as follows; all parameters are tuned. If a parameter is not mentioned for an algorithm, it means it is not part of that algorithm. Also, some parameters are fixed throughout all experiments: #partitions = 32, beta = 0.93, seed = 42.
 
-Figure 2. for mnist8m > dataset:#iteration = 10000, step size = 8e-7, sampling rate = 0.1 for epsilon> dataset:#iteration = 3000, step size = 10, sampling rate = 0.1 for rcv1_full.bianry > dataset:#iteration = 3000, step size = 10, sampling rate = 0.05
+*Figure 2*. for mnist8m > dataset:#iteration = 10000, step size = 8e-7, sampling rate = 0.1 for epsilon> dataset:#iteration = 3000, step size = 10, sampling rate = 0.1 for rcv1_full.bianry > dataset:#iteration = 3000, step size = 10, sampling rate = 0.05
 
 Figure 3. In this figure delay intensity is chosento be [0.3, 0.6, 1.0] to generate all results for each dataset. Other parameters are: For the ASYNC results: for mnist8m > dataset:#iteration = 300000, step size = 0.25e-7, sampling rate = 0.1 for epsilon> dataset:#iteration = 320000, step size = 0.3125, sampling rate = 0.1 for rcv1_full.bianry > dataset:#iteration = 100000, step size = 0.3125, sampling rate = 0.05 For the Sync results: for mnist8m > dataset:#iteration = 10000, step size = 8e-7, sampling rate = 0.1 for epsilon> dataset:#iteration = 10000, step size = 10, sampling rate = 0.1 for rcv1_full.bianry > dataset:#iteration = 3000, step size = 10, sampling rate = 0.05
 
