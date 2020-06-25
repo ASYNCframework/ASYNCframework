@@ -23,7 +23,7 @@ The SBT build is derived from the Maven POM files, and so the same Maven profile
 # Tests
 ASYNC comes with two asynchronous optimization algorithm, Asynchronous Stochastic Gradient Descent [ASGD](https://papers.nips.cc/paper/4687-large-scale-distributed-deep-networks.pdf) and [ASAGA](http://proceedings.mlr.press/v54/leblond17a/leblond17a.pdf) which are located in the `ASYNCsamples` directory:
 
-- SparkASAGAThread: The synchronous version of SAGA (ASAGA) with history.
+- SparkASAGAThread: The asynchronous version of SAGA (ASAGA) with history.
 
 - SparkASAGASync: The synchronous version of SAGA with history.
 
@@ -38,7 +38,17 @@ The template for running each method, or any new developed one is identical runn
 ```sh
 ./bin/spark-submit [Spark Args] --class <class> [params]
 ```
+All the scala codes for mentioned algorithms are located in the `example` directory [here](https://github.com/ASYNCframework/ASYNCframework/tree/master/examples/src/main/scala/org/apache/spark/examples). Other Spark examples are also adopted from Apache Spark. For example, the implementation file for asynchronous version of SGD is `SparkASGDThread.scala`. 
 
+Here we do not explain the complete deployment of a Spark application as it depends on the cluster configuration. However, the main part which is submitting the job is similar. For example, for `mnist8m` dataset we have:
+
+```sh
+spark-submit --executor-memory 15g --driver-memory 20g   --class SparkASGDThread SparkASGDThread.jar  /path/to/datasets/ mnist8m.scale 784 8100000 64 16000 1.5625e-3 20000000 0.01 0.7 200 -1  42
+```
+
+For a detailed explanation of the parameters, see below.
+
+- 
 # Complete guide for all experiments in the paper
 
 We ran two optimization methods, synchronous stochastic gradient descent (SGD) and SAGA and their asynchronous variants (ASGD and ASAGA) on the XSEDE Comet CPUs with our ASYNC framework and compared it to the synchronous implementation of Mllib. All experiments use Scala 2.11 and Spark 2.3.2. We use three datasets for evaluation of our framework all of which are publically available.
