@@ -1,6 +1,6 @@
 # ASYNC frameowrk
 
-ASYNC is built on top of Spark 2.3.2, a fast and general cluster computing system for Big Data. It provides an API in Scala(2.11) for implementing asynchronous optimization methods. The compilation is the same as Apache Spark. You can find the latest Spark documentation, including a programming guide, on the [project web page](http://spark.apache.org/documentation.html).
+ASYNC is built on top of Spark 2.3.2, a fast and general cluster computing system for Big Data. It provides an API in Scala(2.11) for implementing asynchronous optimization methods. The compilation is the same as Apache Spark. You can find the latest Spark documentation, including a programming guide, on the [Spark web page](http://spark.apache.org/documentation.html).
 
 # Presentation
 Please check the [Presentation](https://github.com/ASYNCframework/ASYNCframework/tree/master/Presentation) directory for slides and video of the presentation.
