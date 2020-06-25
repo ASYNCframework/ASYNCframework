@@ -48,7 +48,7 @@ spark-submit --executor-memory 15g --driver-memory 20g   --class SparkASGDThread
 
 For a detailed explanation of the parameters, see below.
 
-- 
+
 # Complete guide for all experiments in the paper
 
 We ran two optimization methods, synchronous stochastic gradient descent (SGD) and SAGA and their asynchronous variants (ASGD and ASAGA) on the XSEDE Comet CPUs with our ASYNC framework and compared it to the synchronous implementation of Mllib. All experiments use Scala 2.11 and Spark 2.3.2. We use three datasets for evaluation of our framework all of which are publically available.
